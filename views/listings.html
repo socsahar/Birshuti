@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ציוד זמין - ברשותי</title>
+    <link rel="icon" type="image/svg+xml" href="/images/favicon.svg">
+    <link rel="stylesheet" href="/css/main.css">
+    <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        .listing-card-link:hover .card {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <nav class="nav">
+                <div class="logo"><img src="/images/logo.png" alt="ברשותי" style="height: 100px; vertical-align: middle;"></div>
+                <ul class="nav-links" id="nav-links">
+                    <!-- Will be populated by JavaScript -->
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <section class="section">
+        <div class="container">
+            <h1 style="color: var(--primary); margin-bottom: 2rem;">ציוד זמין</h1>
+
+            <!-- Filters -->
+            <div class="card" style="margin-bottom: 2rem;">
+                <h3 style="margin-bottom: 1rem;">סינון</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label">קטגוריה</label>
+                        <select class="form-select" id="filter-category">
+                            <option value="">הכל</option>
+                            <option value="חולצות">חולצות</option>
+                            <option value="מעילים">מעילים</option>
+                            <option value="פליזים">פליזים</option>
+                            <option value="מכנסיים">מכנסיים</option>
+                            <option value="נעליים">נעליים</option>
+                            <option value="אחר">אחר</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label">מרחב</label>
+                        <select class="form-select" id="filter-merhav">
+                            <option value="">הכל</option>
+                            <option value="ירדן">ירדן</option>
+                            <option value="גלבוע">גלבוע</option>
+                            <option value="אשר">אשר</option>
+                            <option value="כרמל">כרמל</option>
+                            <option value="שרון">שרון</option>
+                            <option value="ירקון">ירקון</option>
+                            <option value="דן">דן</option>
+                            <option value="איילון">איילון</option>
+                            <option value="לכיש">לכיש</option>
+                            <option value="נגב">נגב</option>
+                            <option value="ירושלים">ירושלים</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label">סוג עסקה</label>
+                        <select class="form-select" id="filter-type">
+                            <option value="">הכל</option>
+                            <option value="מסירה">מסירה</option>
+                            <option value="השאלה">השאלה</option>
+                            <option value="החלפה">החלפה</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label">חיפוש חופשי</label>
+                        <input type="text" class="form-input" id="filter-search" placeholder="חיפוש בכותרת או תיאור">
+                    </div>
+                </div>
+                <button class="btn btn-primary" id="search-btn" style="margin-top: 1rem;">חפש</button>
+            </div>
+
+            <!-- Listings Container -->
+            <div id="listings-container">
+                <div class="spinner"></div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 ברשותי - פלטפורמת שיתוף ציוד למתנדבי מד״א</p>
+            <p style="font-size: 0.875rem; margin-top: 0.5rem; color: rgba(255, 255, 255, 0.7);">
+                פותח על ידי <a href="https://sanda-uinc.onrender.com/" target="_blank" rel="noopener noreferrer" style="color: #ffffff; text-decoration: underline;">Sand</a>
+            </p>
+        </div>
+    </footer>
+
+    <script src="/js/app.js"></script>
+    <script>
+        // Setup navigation
+        const isAuth = isAuthenticated();
+        const navLinks = document.getElementById('nav-links');
+        
+        if (isAuth) {
+            const user = getCurrentUser();
+            navLinks.innerHTML = `
+                <li><a href="/">עמוד הבית</a></li>
+                <li><a href="/dashboard">לוח הבקרה</a></li>
+                <li><a href="/listings">ציוד זמין</a></li>
+                ${user.role === 'admin' ? '<li><a href="/admin">פאנל ניהול</a></li>' : ''}
+                <li><a href="#" id="logout-btn" class="btn btn-outline btn-sm">התנתק</a></li>
+            `;
+            
+            document.getElementById('logout-btn').addEventListener('click', async function(e) {
+                e.preventDefault();
+                try {
+                    await authAPI.logout();
+                    window.location.href = '/';
+                } catch (error) {
+                    clearAuthSession();
+                    window.location.href = '/';
+                }
+            });
+        } else {
+            navLinks.innerHTML = `
+                <li><a href="/">עמוד הבית</a></li>
+                <li><a href="/login" class="btn btn-outline btn-sm">התחברות</a></li>
+                <li><a href="/register" class="btn btn-primary btn-sm">הרשמה</a></li>
+            `;
+        }
+
+        // Load listings
+        async function loadListings() {
+            const container = document.getElementById('listings-container');
+            container.innerHTML = '<div class="spinner"></div>';
+
+            try {
+                const filters = {
+                    category: document.getElementById('filter-category').value,
+                    merhav: document.getElementById('filter-merhav').value,
+                    transaction_type: document.getElementById('filter-type').value,
+                    search: document.getElementById('filter-search').value
+                };
+
+                // Remove empty filters
+                Object.keys(filters).forEach(key => {
+                    if (!filters[key]) delete filters[key];
+                });
+
+                const data = await listingsAPI.getAll(filters);
+
+                if (data.listings.length === 0) {
+                    container.innerHTML = '<div class="alert alert-info">לא נמצאו פרסומים התואמים את הסינון</div>';
+                    return;
+                }
+
+                // Store listing IDs and filters in sessionStorage for navigation
+                const listingIds = data.listings.map(l => l.id);
+                sessionStorage.setItem('listingIds', JSON.stringify(listingIds));
+                sessionStorage.setItem('listingFilters', JSON.stringify(filters));
+
+                container.innerHTML = data.listings.map(listing => {
+                    return `
+                        <a href="/listing-detail?id=${listing.id}" class="listing-card-link" style="text-decoration: none; color: inherit; display: block;">
+                            <div class="card" style="cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;">
+                                <h3 style="color: var(--primary); margin-bottom: 0.75rem;">${listing.title}</h3>
+                                <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.75rem;">
+                                    <span class="badge badge-secondary">${listing.category}</span>
+                                    <span class="badge badge-primary">${listing.transaction_type}</span>
+                                    ${listing.size ? `<span class="badge badge-secondary">${listing.size}</span>` : ''}
+                                    ${listing.is_available ? '<span class="badge badge-success">זמין</span>' : '<span class="badge badge-error">לא זמין</span>'}
+                                </div>
+                                <p style="margin: 0 0 0.5rem 0; color: var(--neutral-700);"><strong>מרחב:</strong> ${listing.merhav}</p>
+                                <p style="margin: 0 0 0.75rem 0; font-size: 0.875rem; color: var(--neutral-600);">
+                                    פורסם: ${formatDate(listing.created_at)}
+                                </p>
+                                <p style="margin: 0; font-size: 0.8rem; color: var(--secondary); font-style: italic;">
+                                    👆 לחץ לצפייה בפרטים המלאים
+                                </p>
+                            </div>
+                        </a>
+                    `;
+                }).join('');
+
+            } catch (error) {
+                console.error('Load listings error:', error);
+                container.innerHTML = `
+                    <div class="alert alert-error">שגיאה בטעינת הפרסומים. נסה שוב מאוחר יותר.</div>
+                    ${!isAuth ? '<div class="alert alert-info" style="margin-top: 1rem;">שים לב: חלק מהפרסומים זמינים רק למשתמשים מחוברים. <a href="/login">התחבר כאן</a></div>' : ''}
+                `;
+            }
+        }
+
+        // Add search button click handler
+        document.getElementById('search-btn').addEventListener('click', loadListings);
+
+        // Load on page load - load listings even if not authenticated (will show public listings only)
+        loadListings();
+
+        // Allow enter key to search
+        document.getElementById('filter-search').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                loadListings();
+            }
+        });
+        
+        // Image enlargement functions
+        function enlargeImage(src) {
+            document.getElementById('imageModal').style.display = 'block';
+            document.getElementById('enlargedImage').src = src;
+        }
+        
+        // Event delegation for image clicks
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('listing-image')) {
+                enlargeImage(e.target.dataset.imageSrc);
+            }
+        });
+        
+        function closeImageModal() {
+            document.getElementById('imageModal').style.display = 'none';
+        }
+        
+        // Close on click outside
+        window.addEventListener('click', function(e) {
+            const modal = document.getElementById('imageModal');
+            if (e.target === modal) {
+                closeImageModal();
+            }
+        });
+        
+        // Close button event listener
+        document.getElementById('closeModalBtn').addEventListener('click', closeImageModal);
+    </script>
+    
+    <!-- Image Enlargement Modal -->
+    <div id="imageModal" style="display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.9);">
+        <span id="closeModalBtn" style="position: absolute; top: 15px; right: 35px; color: #f1f1f1; font-size: 40px; font-weight: bold; cursor: pointer;">&times;</span>
+        <img id="enlargedImage" style="margin: auto; display: block; max-width: 90%; max-height: 90%; margin-top: 2%;">
+    </div>
+</body>
+</html>

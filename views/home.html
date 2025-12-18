@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ברשותי - פלטפורמת שיתוף ציוד למתנדבי מד״א</title>
+    <meta name="description" content="פלטפורמה למתנדבי מגן דוד אדום לפרסם, להחליף, להשאיל או למסור ציוד ביגוד אישי">
+    <link rel="icon" type="image/svg+xml" href="/images/favicon.svg">
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <nav class="nav">
+                <div class="logo">
+                    <img src="/images/logo.png" alt="ברשותי" style="height: 100px; vertical-align: middle;">
+                </div>
+                <ul class="nav-links" id="nav-links">
+                    <!-- Will be populated by JavaScript -->
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container text-center">
+            <img src="/images/logo.png" alt="ברשותי" style="height: 150px; margin-bottom: 1rem;">
+            <p style="font-size: 1.5rem; color: var(--neutral-600); margin-bottom: 2rem;">
+                פלטפורמת שיתוף ציוד למתנדבי מגן דוד אדום
+            </p>
+            <div id="hero-buttons" style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                <!-- Will be populated by JavaScript -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Recent Listings Carousel (Verified Volunteers Only) -->
+    <section class="section" id="recent-listings-section" style="display: none;">
+        <div class="container">
+            <h2 style="text-align: center; color: var(--primary); margin-bottom: 2rem;">פרסומים אחרונים</h2>
+            <div class="carousel-container">
+                <div class="carousel-track" id="carousel-track">
+                    <!-- Listings will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- What is Birshuti -->
+    <section class="section">
+        <div class="container-narrow">
+            <h2 style="text-align: center; color: var(--primary);">מהי הפלטפורמה?</h2>
+            <div class="card">
+                <p>
+                    <strong>ברשותי</strong> היא פלטפורמה קהילתית למתנדבי מגן דוד אדום בישראל, שנועדה לאפשר שיתוף, החלפה, השאלה ומסירה של ציוד ביגוד אישי בין מתנדבים.
+                </p>
+                <p>
+                    המתנדבים במד״א זקוקים לעיתים קרובות לציוד מגוון - ביגוד, נעליים, ציוד רפואי ועוד. לא כולם יכולים להשקיע בכל פריט, וחלק מהציוד משמש רק לעיתים נדירות.
+                </p>
+                <p>
+                    <strong>ברשותי</strong> נותנת מענה לצורך הזה - מתנדבים יכולים לפרסם ציוד שברשותם ואינם משתמשים בו, ולחפש ציוד שהם זקוקים לו, ליצור קשר ישיר ולתאם מסירה, השאלה או החלפה.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- How it works -->
+    <section class="section section-alt">
+        <div class="container-narrow">
+            <h2 style="text-align: center; color: var(--primary);">איך זה עובד?</h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem; margin-top: 2rem;">
+                <div class="card text-center">
+                    <h3 style="color: var(--secondary);">1. הרשמה</h3>
+                    <p>צור חשבון ובחר אם אתה מתנדב פעיל במד״א</p>
+                </div>
+                <div class="card text-center">
+                    <h3 style="color: var(--secondary);">2. אימות (למתנדבים)</h3>
+                    <p>מתנדבים מאומתים זוכים לגישה מלאה לציוד מד"א</p>
+                </div>
+                <div class="card text-center">
+                    <h3 style="color: var(--secondary);">3. פרסום ציוד</h3>
+                    <p>פרסם ציוד שברשותך - למסירה, השאלה או החלפה</p>
+                </div>
+                <div class="card text-center">
+                    <h3 style="color: var(--secondary);">4. חיפוש וקשר</h3>
+                    <p>חפש ציוד שאתה זקוק לו וצור קשר ישיר עם הבעלים</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CRITICAL DISCLAIMERS -->
+    <section class="section">
+        <div class="container-narrow">
+            <div class="disclaimer">
+                <div class="disclaimer-title">
+                    ⚠️ הצהרות חשובות - קראו בעיון
+                </div>
+                <ul>
+                    <li><strong>פלטפורמה זו אינה קשורה רשמית למגן דוד אדום.</strong> זוהי יזמה קהילתית עצמאית ואינה נתמכת, מאושרת או מפוקחת על ידי ארגון מד״א.</li>
+                    <li><strong>כל העברת ציוד היא בהסכמה פרטית בין משתמשים.</strong> הפלטפורמה משמשת כמרחב לקשר בלבד ואינה צד להסכמים או לעסקאות.</li>
+                    <li><strong>הפלטפורמה אינה מאמתת תקינות, בטיחות או התאמה של ציוד.</strong> כל משתמש אחראי באופן בלעדי לוודא שהציוד שהוא מקבל או מוסר עומד בתקנים ובדרישות הרלוונטיות.</li>
+                    <li><strong>המשתמשים אחראים באופן בלעדי לעמידה בכללים ובתקנות של מגן דוד אדום.</strong> השימוש בפלטפורמה אינו מהווה היתר לשימוש בציוד שאינו עומד בדרישות הארגון.</li>
+                    <li><strong>לא ניתנת כל ייעוץ רפואי, מבצעי או מקצועי.</strong> הפלטפורמה היא כלי לשיתוף מידע בלבד.</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- Who is this for -->
+    <section class="section section-alt">
+        <div class="container-narrow">
+            <h2 style="text-align: center; color: var(--primary);">למי זה מיועד?</h2>
+            <div class="card">
+                <h3 style="color: var(--secondary);">מתנדבי מד״א פעילים</h3>
+                <p>
+                    הפלטפורמה מיועדת למתנדבים פעילים במגן דוד אדום בישראל. כדי לקבל גישה מלאה ליצירת פרסומים ולצפייה בכל המודעות, יש להצהיר על היותך מתנדב פעיל בעת ההרשמה.
+                </p>
+                <h3 style="color: var(--secondary); margin-top: 2rem;">תהליך האימות</h3>
+                <p>
+                    לאחר ההרשמה והצהרה על היותך מתנדב, תצטרך ליצור קשר עם מנהל הפלטפורמה לצורך אימות. <strong>לא נדרש להעלות מסמכים או תעודות דרך האתר.</strong> האימות מתבצע באופן פרטי ומבוסס על שיקול דעת אישי.
+                </p>
+                <p>
+                    לאחר אישור המנהל, תקבל סטטוס "מתנדב מאומת" ותוכל ליצור פרסומים ולצפות בכל הציוד הזמין.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Call to Action -->
+    <section class="section">
+        <div class="container text-center">
+            <h2 style="color: var(--primary); margin-bottom: 1.5rem;">מוכנים להצטרף?</h2>
+            <p style="font-size: 1.25rem; color: var(--neutral-600); margin-bottom: 2rem;">
+                הצטרפו לקהילת המתנדבים ותתחילו לשתף ולמצוא ציוד
+            </p>
+            <a href="/register" class="btn btn-primary btn-lg">הרשמה כעת</a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 ברשותי - פלטפורמת שיתוף ציוד למתנדבי מד״א</p>
+            <p style="font-size: 0.875rem; margin-top: 0.5rem;">
+                פלטפורמה זו אינה קשורה רשמית למגן דוד אדום
+            </p>
+            <p style="font-size: 0.875rem; margin-top: 0.5rem; color: rgba(255, 255, 255, 0.7);">
+                פותח על ידי <a href="https://sanda-uinc.onrender.com/" target="_blank" rel="noopener noreferrer" style="color: #ffffff; text-decoration: underline;">Sand</a>
+            </p>
+        </div>
+    </footer>
+
+    <style>
+        .hero {
+            background: linear-gradient(135deg, #1e3a5f 0%, #2d9687 100%);
+            color: white;
+            padding: 6rem 0;
+            margin-bottom: 3rem;
+        }
+        
+        .hero h1 {
+            color: white !important;
+        }
+        
+        .hero p {
+            color: rgba(255,255,255,0.9) !important;
+        }
+        
+        /* Recent Listings Carousel */
+        .carousel-container {
+            overflow: hidden;
+            position: relative;
+            width: 100%;
+        }
+        
+        .carousel-track {
+            display: flex;
+            gap: 1.5rem;
+            animation: scroll 30s linear infinite;
+        }
+        
+        .carousel-card {
+            flex: 0 0 300px;
+            min-width: 300px;
+        }
+        
+        .carousel-card .card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .carousel-card .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+        }
+        
+        @keyframes scroll {
+            0% {
+                transform: translateX(0);
+            }
+            100% {
+                transform: translateX(calc(-300px * 10 - 1.5rem * 10));
+            }
+        }
+        
+        .carousel-track:hover {
+            animation-play-state: paused;
+        }
+        
+        @media (max-width: 768px) {
+            .carousel-card {
+                flex: 0 0 250px;
+                min-width: 250px;
+            }
+            
+            @keyframes scroll {
+                0% {
+                    transform: translateX(0);
+                }
+                100% {
+                    transform: translateX(calc(-250px * 10 - 1.5rem * 10));
+                }
+            }
+        }
+    </style>
+
+    <script src="/js/app.js"></script>
+    <script>
+        // Load recent listings for verified volunteers
+        async function loadRecentListings() {
+            try {
+                const response = await fetch('/api/listings?limit=10', {
+                    headers: {
+                        'Authorization': `Bearer ${getAuthToken()}`
+                    }
+                });
+                
+                if (!response.ok) throw new Error('Failed to fetch listings');
+                
+                const data = await response.json();
+                const listings = data.listings.slice(0, 10);
+                
+                if (listings.length === 0) return;
+                
+                const carouselTrack = document.getElementById('carousel-track');
+                
+                carouselTrack.innerHTML = listings.map(listing => `
+                    <div class="carousel-card">
+                        <a href="/listing/${listing.id}" style="text-decoration: none; color: inherit;">
+                            <div class="card" style="height: 100%; margin: 0;">
+                                <h3 style="color: var(--primary); font-size: 1.1rem; margin-bottom: 0.5rem;">${listing.title}</h3>
+                                <p style="color: var(--neutral-600); font-size: 0.9rem; margin-bottom: 0.75rem;">${listing.description.substring(0, 80)}${listing.description.length > 80 ? '...' : ''}</p>
+                                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                                    <span class="badge badge-secondary">${listing.category}</span>
+                                    <span class="badge badge-primary">${listing.transaction_type}</span>
+                                    ${listing.size ? `<span class="badge badge-secondary">${listing.size}</span>` : ''}
+                                    ${listing.volunteer_only ? '<span class="badge badge-warning">למתנדבים בלבד</span>' : ''}
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                `).join('');
+                
+                // Show the section
+                document.getElementById('recent-listings-section').style.display = 'block';
+            } catch (error) {
+                console.error('Error loading recent listings:', error);
+            }
+        }
+        
+        // Setup navigation based on authentication status
+        const isAuth = isAuthenticated();
+        const navLinks = document.getElementById('nav-links');
+        const heroButtons = document.getElementById('hero-buttons');
+        
+        if (isAuth) {
+            const user = getCurrentUser();
+            const isVerified = user.role === 'verified_volunteer' || user.role === 'admin';
+            
+            // Load recent listings for verified volunteers and admins
+            if (isVerified) {
+                loadRecentListings();
+            }
+            
+            // Show hero buttons based on role
+            if (isVerified) {
+                heroButtons.innerHTML = `
+                    <a href="/dashboard" class="btn btn-secondary btn-lg">לוח הבקרה</a>
+                    <a href="/listings" class="btn btn-outline btn-lg">צפייה בציוד זמין</a>
+                `;
+            } else {
+                heroButtons.innerHTML = `
+                    <a href="/dashboard" class="btn btn-secondary btn-lg">לוח הבקרה</a>
+                `;
+            }
+            
+            // Show navigation menu for logged-in users
+            navLinks.innerHTML = `
+                <li><a href="/">עמוד הבית</a></li>
+                <li><a href="/dashboard">לוח הבקרה</a></li>
+                ${(user.role === 'verified_volunteer' || user.role === 'admin') ? '<li><a href="/listings">ציוד זמין</a></li>' : ''}
+                ${user.role === 'admin' ? '<li><a href="/admin">פאנל ניהול</a></li>' : ''}
+                <li><a href="#" id="logout-btn" class="btn btn-outline btn-sm">התנתק</a></li>
+            `;
+            
+            document.getElementById('logout-btn').addEventListener('click', async function(e) {
+                e.preventDefault();
+                try {
+                    await authAPI.logout();
+                    window.location.href = '/';
+                } catch (error) {
+                    clearAuthSession();
+                    window.location.href = '/';
+                }
+            });
+        } else {
+            // Show hero buttons for non-logged-in users
+            heroButtons.innerHTML = `
+                <a href="/register" class="btn btn-secondary btn-lg">הצטרפות לפלטפורמה</a>
+            `;
+            
+            navLinks.innerHTML = `
+                <li><a href="/">עמוד הבית</a></li>
+                <li><a href="/login" class="btn btn-outline btn-sm">התחברות</a></li>
+                <li><a href="/register" class="btn btn-primary btn-sm">הרשמה</a></li>
+            `;
+        }
+    </script>
+</body>
+</html>

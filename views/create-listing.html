@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>פרסום ציוד חדש - ברשותי</title>    <link rel="icon" type="image/svg+xml" href="/images/favicon.svg">    <link rel="stylesheet" href="/css/main.css">
+    <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <nav class="nav">
+                <div class="logo"><img src="/images/logo.png" alt="ברשותי" style="height: 100px; vertical-align: middle;"></div>
+                <ul class="nav-links">
+                    <li><a href="/">עמוד הבית</a></li>
+                    <li><a href="/dashboard">לוח הבקרה</a></li>
+                    <li><a href="/listings">ציוד זמין</a></li>
+                    <li><a href="#" id="logout-btn" class="btn btn-outline btn-sm">התנתק</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <section class="section">
+        <div class="container-narrow">
+            <h1 id="page-title" style="text-align: center; color: var(--primary); margin-bottom: 2rem;">פרסם ציוד חדש</h1>
+
+            <div class="card">
+                <form id="createListingForm">
+                    <div class="form-group">
+                        <label class="form-label">
+                            כותרת הפרסום <span class="required">*</span>
+                        </label>
+                        <input 
+                            type="text" 
+                            class="form-input" 
+                            id="title" 
+                            name="title" 
+                            required
+                            minlength="3"
+                            maxlength="100"
+                            placeholder='לדוגמה: "מעיל חורף XL"'
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">
+                            קטגוריה <span class="required">*</span>
+                        </label>
+                        <select class="form-select" id="category" name="category" required>
+                            <option value="">בחר קטגוריה</option>
+                            <option value="חולצות">חולצות</option>
+                            <option value="מעילים">מעילים</option>
+                            <option value="פליזים">פליזים</option>
+                            <option value="מכנסיים">מכנסיים</option>
+                            <option value="נעליים">נעליים</option>
+                            <option value="אחר">אחר</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">
+                            סוג עסקה <span class="required">*</span>
+                        </label>
+                        <select class="form-select" id="transaction_type" name="transaction_type" required>
+                            <option value="">בחר סוג עסקה</option>
+                            <option value="מסירה">מסירה (נתינה)</option>
+                            <option value="השאלה">השאלה</option>
+                            <option value="החלפה">החלפה</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">
+                            מידה (אופציונלי)
+                        </label>
+                        <select class="form-select" id="size" name="size">
+                            <option value="">בחר מידה</option>
+                            <option value="Young">Young</option>
+                            <option value="Small">Small</option>
+                            <option value="Medium">Medium</option>
+                            <option value="Large">Large</option>
+                            <option value="XL">XL</option>
+                            <option value="2XL">2XL</option>
+                            <option value="3XL">3XL</option>
+                            <option value="4XL">4XL</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">
+                            מרחב <span class="required">*</span>
+                        </label>
+                        <select class="form-select" id="merhav" name="merhav" required>
+                            <option value="">בחר מרחב</option>
+                            <option value="ירדן">ירדן</option>
+                            <option value="גלבוע">גלבוע</option>
+                            <option value="אשר">אשר</option>
+                            <option value="כרמל">כרמל</option>
+                            <option value="שרון">שרון</option>
+                            <option value="ירקון">ירקון</option>
+                            <option value="דן">דן</option>
+                            <option value="איילון">איילון</option>
+                            <option value="לכיש">לכיש</option>
+                            <option value="נגב">נגב</option>
+                            <option value="ירושלים">ירושלים</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">
+                            תיאור (אופציונלי)
+                        </label>
+                        <textarea 
+                            class="form-textarea" 
+                            id="description" 
+                            name="description"
+                            maxlength="1000"
+                            placeholder="תאר את הציוד, מצבו, גודל, וכל מידע רלוונטי נוסף"
+                        ></textarea>
+                        <div class="form-help">
+                            עד 1000 תווים
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">
+                            תמונות (אופציונלי)
+                        </label>
+                        <div style="display: grid; gap: 1rem;">
+                            <div id="image1-container">
+                                <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+                                    <label for="image1" class="btn btn-outline" style="cursor: pointer; display: inline-block;">
+                                        בחר תמונה 1
+                                    </label>
+                                    <input type="file" id="image1" name="image1" accept="image/*" style="display: none;">
+                                    <span id="image1-name" style="color: var(--neutral-600);"></span>
+                                    <button type="button" id="remove-image1-btn" class="btn btn-sm btn-danger" style="display: none;">הסר תמונה</button>
+                                </div>
+                                <div id="image1-preview" style="margin-top: 0.5rem; display: none;">
+                                    <img id="image1-preview-img" src="" alt="תצוגה מקדימה" style="max-width: 200px; max-height: 200px; border-radius: 8px; object-fit: cover; border: 2px solid var(--neutral-300);">
+                                </div>
+                            </div>
+                            <div id="image2-container">
+                                <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+                                    <label for="image2" class="btn btn-outline" style="cursor: pointer; display: inline-block;">
+                                        בחר תמונה 2
+                                    </label>
+                                    <input type="file" id="image2" name="image2" accept="image/*" style="display: none;">
+                                    <span id="image2-name" style="color: var(--neutral-600);"></span>
+                                    <button type="button" id="remove-image2-btn" class="btn btn-sm btn-danger" style="display: none;">הסר תמונה</button>
+                                </div>
+                                <div id="image2-preview" style="margin-top: 0.5rem; display: none;">
+                                    <img id="image2-preview-img" src="" alt="תצוגה מקדימה" style="max-width: 200px; max-height: 200px; border-radius: 8px; object-fit: cover; border: 2px solid var(--neutral-300);">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-help">
+                            ניתן להעלות עד 2 תמונות. קבצים מסוג JPG, PNG, GIF בלבד. גודל מקסימלי: 5MB
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="form-checkbox">
+                            <input 
+                                type="checkbox" 
+                                id="volunteer_only" 
+                                name="volunteer_only"
+                                checked
+                                disabled
+                            >
+                            <label for="volunteer_only" style="color: var(--neutral-600);">
+                                פרסום למתנדבים מאומתים בלבד
+                            </label>
+                        </div>
+                        <div class="form-help">
+                            כל הפרסומים בפלטפורמה זמינים למתנדבים מאומתים בלבד.
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 1rem;">
+                        <button type="submit" class="btn btn-primary" style="flex: 1;">פרסם</button>
+                        <a href="/dashboard" class="btn btn-outline" style="flex: 1; text-align: center; line-height: 2.5;">ביטול</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 ברשותי - פלטפורמת שיתוף ציוד למתנדבי מד״א</p>
+            <p style="font-size: 0.875rem; margin-top: 0.5rem; color: rgba(255, 255, 255, 0.7);">
+                פותח על ידי <a href="https://sanda-uinc.onrender.com/" target="_blank" rel="noopener noreferrer" style="color: #ffffff; text-decoration: underline;">Sand</a>
+            </p>
+        </div>
+    </footer>
+
+    <script src="/js/app.js"></script>
+    <script>
+        // Require authentication and verified volunteer status
+        if (!requireAuth()) {
+            throw new Error('Not authenticated');
+        }
+
+        const user = getCurrentUser();
+        if (!hasRole(['verified_volunteer', 'admin'])) {
+            alert('רק מתנדבים מאומתים יכולים ליצור פרסומים');
+            window.location.href = '/dashboard';
+        }
+
+        // Check if we're in edit mode
+        const urlParams = new URLSearchParams(window.location.search);
+        const editId = urlParams.get('edit') || urlParams.get('id');
+        let isEditMode = false;
+
+        // Initialize form
+        (async function() {
+            // Load listing data if in edit mode
+            if (editId) {
+                isEditMode = true;
+                document.getElementById('page-title').textContent = 'עריכת פרסום';
+                document.querySelector('button[type="submit"]').textContent = 'עדכן';
+                
+                // Fetch and populate listing data
+                try {
+                    const data = await listingsAPI.getById(editId);
+                    const listing = data.listing;
+                    
+                    // Pre-fill form fields
+                    document.getElementById('title').value = listing.title || '';
+                    document.getElementById('category').value = listing.category || '';
+                    document.getElementById('transaction_type').value = listing.transaction_type || '';
+                    document.getElementById('size').value = listing.size || '';
+                    document.getElementById('merhav').value = listing.merhav || '';
+                    document.getElementById('description').value = listing.description || '';
+                    document.getElementById('volunteer_only').checked = listing.volunteer_only || false;
+                    
+                    // Show existing images with remove buttons and preview
+                    if (listing.image1) {
+                        document.getElementById('image1-name').textContent = 'תמונה קיימת: ' + listing.image1.split('/').pop();
+                        document.getElementById('remove-image1-btn').style.display = 'inline-block';
+                        // Show preview of existing image
+                        const preview1 = document.getElementById('image1-preview');
+                        const previewImg1 = document.getElementById('image1-preview-img');
+                        previewImg1.src = listing.image1;
+                        preview1.style.display = 'block';
+                    }
+                    if (listing.image2) {
+                        document.getElementById('image2-name').textContent = 'תמונה קיימת: ' + listing.image2.split('/').pop();
+                        document.getElementById('remove-image2-btn').style.display = 'inline-block';
+                        // Show preview of existing image
+                        const preview2 = document.getElementById('image2-preview');
+                        const previewImg2 = document.getElementById('image2-preview-img');
+                        previewImg2.src = listing.image2;
+                        preview2.style.display = 'block';
+                    }
+                } catch (error) {
+                    console.error('Load listing error:', error);
+                    showError('שגיאה בטעינת פרטי הפרסום');
+                    setTimeout(() => window.location.href = '/dashboard', 2000);
+                }
+            } else {
+                // Populate merhav from user profile only for new listings
+                document.getElementById('merhav').value = user.merhav || '';
+            }
+        })();
+
+        // Track images to be removed
+        let removeImage1 = false;
+        let removeImage2 = false;
+
+        // Handle remove image 1 button
+        document.getElementById('remove-image1-btn').addEventListener('click', function() {
+            removeImage1 = true;
+            document.getElementById('image1').value = '';
+            document.getElementById('image1-name').textContent = 'תמונה תוסר בעת השמירה';
+            document.getElementById('image1-name').style.color = 'var(--error)';
+            this.style.display = 'none';
+            // Hide preview
+            document.getElementById('image1-preview').style.display = 'none';
+        });
+
+        // Handle remove image 2 button
+        document.getElementById('remove-image2-btn').addEventListener('click', function() {
+            removeImage2 = true;
+            document.getElementById('image2').value = '';
+            document.getElementById('image2-name').textContent = 'תמונה תוסר בעת השמירה';
+            document.getElementById('image2-name').style.color = 'var(--error)';
+            this.style.display = 'none';
+            // Hide preview
+            document.getElementById('image2-preview').style.display = 'none';
+        });
+
+        // Handle logout
+        document.getElementById('logout-btn').addEventListener('click', async function(e) {
+            e.preventDefault();
+            try {
+                await authAPI.logout();
+                window.location.href = '/';
+            } catch (error) {
+                clearAuthSession();
+                window.location.href = '/';
+            }
+        });
+
+        // Handle image file selection display
+        document.getElementById('image1').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                document.getElementById('image1-name').textContent = file.name;
+                document.getElementById('image1-name').style.color = 'var(--neutral-600)';
+                // Show preview of new selected image
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.getElementById('image1-preview');
+                    const previewImg = document.getElementById('image1-preview-img');
+                    previewImg.src = e.target.result;
+                    preview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+                // Reset remove flag if user selects new image
+                removeImage1 = false;
+            }
+        });
+        
+        document.getElementById('image2').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                document.getElementById('image2-name').textContent = file.name;
+                document.getElementById('image2-name').style.color = 'var(--neutral-600)';
+                // Show preview of new selected image
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.getElementById('image2-preview');
+                    const previewImg = document.getElementById('image2-preview-img');
+                    previewImg.src = e.target.result;
+                    preview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+                // Reset remove flag if user selects new image
+                removeImage2 = false;
+            }
+        });
+
+        // Handle form submission
+        document.getElementById('createListingForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const formData = new FormData();
+            formData.append('title', document.getElementById('title').value.trim());
+            formData.append('category', document.getElementById('category').value);
+            formData.append('transaction_type', document.getElementById('transaction_type').value);
+            formData.append('size', document.getElementById('size').value || '');
+            formData.append('merhav', document.getElementById('merhav').value);
+            formData.append('description', document.getElementById('description').value.trim() || '');
+            formData.append('volunteer_only', true); // Always true - all listings are for verified volunteers only
+            
+            // Add images if selected
+            const image1 = document.getElementById('image1').files[0];
+            const image2 = document.getElementById('image2').files[0];
+            if (image1) formData.append('image1', image1);
+            if (image2) formData.append('image2', image2);
+
+            // Add removal flags for edit mode
+            if (isEditMode) {
+                if (removeImage1) formData.append('removeImage1', 'true');
+                if (removeImage2) formData.append('removeImage2', 'true');
+            }
+
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            showLoading(submitBtn);
+
+            try {
+                if (isEditMode) {
+                    // Update existing listing
+                    await listingsAPI.update(editId, formData);
+                    showSuccess('הפרסום עודכן בהצלחה!');
+                } else {
+                    // Create new listing
+                    await listingsAPI.create(formData);
+                    showSuccess('הפרסום נוצר בהצלחה!');
+                }
+                
+                setTimeout(() => {
+                    window.location.href = '/dashboard';
+                }, 1500);
+
+            } catch (error) {
+                console.error('Save listing error:', error);
+                showError(error.message || 'שגיאה בשמירת הפרסום. נסה שוב.');
+                hideLoading(submitBtn);
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>לוח הבקרה - ברשותי</title>
+    <link rel="icon" type="image/svg+xml" href="/images/favicon.svg">
+    <link rel="stylesheet" href="/css/main.css">
+    <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Custom Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-overlay.show {
+            display: flex;
+        }
+        .modal-box {
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: var(--shadow-xl);
+            animation: modalSlideIn 0.3s ease;
+        }
+        @keyframes modalSlideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--neutral-800);
+            margin-bottom: 1rem;
+        }
+        .modal-message {
+            color: var(--neutral-600);
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+        .modal-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+        }
+    </style>
+</head>
+<body>
+    <!-- Confirmation Modal -->
+    <div id="confirm-modal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-title" id="modal-title"></div>
+            <div class="modal-message" id="modal-message"></div>
+            <div class="modal-buttons">
+                <button class="btn btn-outline" id="modal-cancel">ביטול</button>
+                <button class="btn btn-primary" id="modal-confirm">אישור</button>
+            </div>
+        </div>
+    </div>
+
+    <header class="header">
+        <div class="container">
+            <nav class="nav">
+                <div class="logo"><img src="/images/logo.png" alt="ברשותי" style="height: 100px; vertical-align: middle;"></div>
+                <ul class="nav-links">
+                    <li><a href="/">עמוד הבית</a></li>
+                    <li><a href="/dashboard">לוח הבקרה</a></li>
+                    <li><a href="/listings">ציוד זמין</a></li>
+                    <li><a href="#" id="admin-link" style="display: none;">פאנל ניהול</a></li>
+                    <li><a href="#" id="logout-btn" class="btn btn-outline btn-sm">התנתק</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <section class="section">
+        <div class="container">
+            <h1 style="color: var(--primary);">שלום, <span id="user-name"></span></h1>
+
+            <!-- Status Alert for Pending Volunteers -->
+            <div id="pending-alert" class="alert alert-warning" style="display: none;">
+                <strong>סטטוס: ממתין לאישור מנהל</strong><br>
+                החשבון שלך ממתין לאישור. לאימות מתנדב, אנא צור קשר עם מנהל הפלטפורמה.
+                לאחר האישור תוכל ליצור פרסומים ולצפות בכל הציוד הזמין.
+            </div>
+
+            <!-- User Info Card -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">פרטי המשתמש</h3>
+                </div>
+                <div class="card-body">
+                    <p><strong>אימייל:</strong> <span id="user-email"></span></p>
+                    <p><strong>מרחב:</strong> <span id="user-merhav"></span></p>
+                    <p><strong>טלפון:</strong> <span id="user-phone"></span></p>
+                    <p><strong>סטטוס:</strong> <span id="user-status" class="badge"></span></p>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-top: 2rem;">
+                <div class="card text-center">
+                    <h3 style="color: var(--secondary);">צפה בציוד זמין</h3>
+                    <p>חפש ציוד שאתה זקוק לו</p>
+                    <a href="/listings" class="btn btn-primary">עבור לרשימה</a>
+                </div>
+
+                <div class="card text-center" id="create-listing-card" style="display: none;">
+                    <h3 style="color: var(--secondary);">פרסם ציוד חדש</h3>
+                    <p>פרסם ציוד שברשותך</p>
+                    <a href="/create-listing" class="btn btn-accent">צור פרסום</a>
+                </div>
+
+                <div class="card text-center" id="my-listings-card" style="display: none;">
+                    <h3 style="color: var(--secondary);">הפרסומים שלי</h3>
+                    <p>נהל את הפרסומים שלך</p>
+                    <button class="btn btn-secondary" id="load-my-listings-btn">צפה בפרסומים</button>
+                </div>
+            </div>
+
+            <!-- My Listings Section -->
+            <div id="my-listings-section" style="display: none; margin-top: 3rem;">
+                <h2 style="color: var(--primary);">הפרסומים שלי</h2>
+                <div id="my-listings-container"></div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 ברשותי - פלטפורמת שיתוף ציוד למתנדבי מד״א</p>
+            <p style="font-size: 0.875rem; margin-top: 0.5rem; color: rgba(255, 255, 255, 0.7);">
+                פותח על ידי <a href="https://sanda-uinc.onrender.com/" target="_blank" rel="noopener noreferrer" style="color: #ffffff; text-decoration: underline;">Sand</a>
+            </p>
+        </div>
+    </footer>
+
+    <script src="/js/app.js"></script>
+    <script>
+        // Require authentication
+        if (!requireAuth()) {
+            throw new Error('Not authenticated');
+        }
+
+        const user = getCurrentUser();
+
+        // Populate user info
+        document.getElementById('user-name').textContent = user.full_name || 'משתמש';
+        document.getElementById('user-email').textContent = user.email;
+        document.getElementById('user-merhav').textContent = user.merhav || '-';
+        document.getElementById('user-phone').textContent = user.phone || '-';
+
+        // Set status badge
+        const statusBadge = document.getElementById('user-status');
+        const statusMap = {
+            'user': { text: 'משתמש רגיל', class: 'badge-secondary' },
+            'pending_volunteer': { text: 'ממתין לאישור', class: 'badge-warning' },
+            'verified_volunteer': { text: 'מתנדב מאומת', class: 'badge-success' },
+            'admin': { text: 'מנהל', class: 'badge-primary' }
+        };
+        const status = statusMap[user.role] || statusMap['user'];
+        statusBadge.textContent = status.text;
+        statusBadge.className = `badge ${status.class}`;
+
+        // Show pending alert for pending volunteers
+        if (user.role === 'pending_volunteer') {
+            document.getElementById('pending-alert').style.display = 'block';
+        }
+
+        // Show admin link if admin
+        if (user.role === 'admin') {
+            const adminLink = document.getElementById('admin-link');
+            adminLink.style.display = 'block';
+            adminLink.href = '/admin';
+        }
+
+        // Show create listing card for verified volunteers and admins
+        if (user.role === 'verified_volunteer' || user.role === 'admin') {
+            document.getElementById('create-listing-card').style.display = 'block';
+            document.getElementById('my-listings-card').style.display = 'block';
+            
+            // Add event listener for load my listings button
+            document.getElementById('load-my-listings-btn').addEventListener('click', loadMyListings);
+        }
+
+        // Handle logout
+        document.getElementById('logout-btn').addEventListener('click', async function(e) {
+            e.preventDefault();
+            try {
+                await authAPI.logout();
+                window.location.href = '/';
+            } catch (error) {
+                console.error('Logout error:', error);
+                clearAuthSession();
+                window.location.href = '/';
+            }
+        });
+
+        // Load my listings
+        async function loadMyListings() {
+            const section = document.getElementById('my-listings-section');
+            const container = document.getElementById('my-listings-container');
+            
+            section.style.display = 'block';
+            container.innerHTML = '<div class="spinner"></div>';
+
+            try {
+                const data = await listingsAPI.getMyListings();
+                
+                if (data.listings.length === 0) {
+                    container.innerHTML = '<p class="text-muted">אין לך פרסומים עדיין. <a href="/create-listing">צור פרסום ראשון</a></p>';
+                    return;
+                }
+
+                container.innerHTML = data.listings.map(listing => `
+                    <div class="card">
+                        <div style="display: flex; justify-content: space-between; align-items: start;">
+                            <div style="flex: 1;">
+                                <h3 style="color: var(--primary); margin-bottom: 0.5rem;">${listing.title}</h3>
+                                <p style="color: var(--neutral-600); margin-bottom: 0.5rem;">
+                                    <span class="badge badge-secondary">${listing.category}</span>
+                                    <span class="badge badge-primary">${listing.transaction_type}</span>
+                                    ${listing.size ? `<span class="badge badge-secondary">${listing.size}</span>` : ''}
+                                    ${listing.volunteer_only ? '<span class="badge badge-warning">למתנדבים בלבד</span>' : ''}
+                                    ${listing.is_available ? '<span class="badge badge-success">זמין</span>' : '<span class="badge badge-error">לא זמין</span>'}
+                                </p>
+                                <p style="margin-bottom: 0.5rem;"><strong>מרחב:</strong> ${listing.merhav}</p>
+                                ${listing.description ? `<p style="color: var(--neutral-600);">${listing.description}</p>` : ''}
+                                <p style="font-size: 0.875rem; color: var(--neutral-600);">
+                                    נוצר: ${formatDate(listing.created_at)}
+                                </p>
+                                <p style="font-size: 0.875rem; color: var(--secondary); font-weight: 600;">
+                                    👁️ צפיות: ${listing.views || 0}
+                                </p>
+                            </div>
+                            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                                <button class="btn btn-sm ${listing.is_available ? 'btn-warning' : 'btn-success'} toggle-availability-btn" 
+                                        data-listing-id="${listing.id}" 
+                                        data-current-status="${listing.is_available}">
+                                    ${listing.is_available ? 'סמן כלא זמין' : 'סמן כזמין'}
+                                </button>
+                                <button class="btn btn-sm btn-secondary edit-listing-btn" data-listing-id="${listing.id}">ערוך</button>
+                                <button class="btn btn-sm btn-danger delete-listing-btn" data-listing-id="${listing.id}">מחק</button>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+                
+                // Add event listeners for action buttons
+                document.querySelectorAll('.toggle-availability-btn').forEach(btn => {
+                    btn.addEventListener('click', () => toggleAvailability(btn.dataset.listingId, btn.dataset.currentStatus === 'true'));
+                });
+                
+                document.querySelectorAll('.edit-listing-btn').forEach(btn => {
+                    btn.addEventListener('click', () => editListing(btn.dataset.listingId));
+                });
+                
+                document.querySelectorAll('.delete-listing-btn').forEach(btn => {
+                    btn.addEventListener('click', () => deleteListing(btn.dataset.listingId));
+                });
+
+            } catch (error) {
+                console.error('Load my listings error:', error);
+                container.innerHTML = '<div class="alert alert-error">שגיאה בטעינת הפרסומים</div>';
+            }
+        }
+
+        // Toggle listing availability
+        async function toggleAvailability(id, currentStatus) {
+            try {
+                const newStatus = !currentStatus;
+                await listingsAPI.update(id, { is_available: newStatus });
+                showSuccess(`הפרסום עודכן ל${newStatus ? 'זמין' : 'לא זמין'}`);
+                loadMyListings();
+            } catch (error) {
+                console.error('Toggle availability error:', error);
+                showError(error.message || 'שגיאה בעדכון זמינות');
+            }
+        }
+
+        // Custom confirm modal
+        function showConfirm(title, message) {
+            return new Promise((resolve) => {
+                const modal = document.getElementById('confirm-modal');
+                const titleEl = document.getElementById('modal-title');
+                const messageEl = document.getElementById('modal-message');
+                const confirmBtn = document.getElementById('modal-confirm');
+                const cancelBtn = document.getElementById('modal-cancel');
+
+                titleEl.textContent = title;
+                messageEl.textContent = message;
+                modal.classList.add('show');
+
+                const cleanup = () => {
+                    modal.classList.remove('show');
+                    confirmBtn.removeEventListener('click', onConfirm);
+                    cancelBtn.removeEventListener('click', onCancel);
+                    modal.removeEventListener('click', onOverlayClick);
+                };
+
+                const onConfirm = () => {
+                    cleanup();
+                    resolve(true);
+                };
+
+                const onCancel = () => {
+                    cleanup();
+                    resolve(false);
+                };
+
+                const onOverlayClick = (e) => {
+                    if (e.target === modal) {
+                        cleanup();
+                        resolve(false);
+                    }
+                };
+
+                confirmBtn.addEventListener('click', onConfirm);
+                cancelBtn.addEventListener('click', onCancel);
+                modal.addEventListener('click', onOverlayClick);
+            });
+        }
+
+        // Edit listing - redirect to create-listing page with edit mode
+        function editListing(id) {
+            window.location.href = `/create-listing?edit=${id}`;
+        }
+
+        // Delete listing
+        async function deleteListing(id) {
+            const confirmed = await showConfirm(
+                'מחיקת פרסום',
+                'האם אתה בטוח שברצונך למחוק פרסום זה? פעולה זו בלתי הפיכה.'
+            );
+            
+            if (!confirmed) return;
+
+            try {
+                await listingsAPI.delete(id);
+                showSuccess('הפרסום נמחק בהצלחה');
+                loadMyListings();
+            } catch (error) {
+                console.error('Delete listing error:', error);
+                showError(error.message || 'שגיאה במחיקת הפרסום');
+            }
+        }
+
+        // Refresh user profile on load
+        authAPI.getMe().catch(console.error);
+    </script>
+</body>
+</html>

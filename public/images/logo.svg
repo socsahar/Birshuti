@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 60" width="200" height="60">
+  <defs>
+    <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#2563eb;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1e40af;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background shape -->
+  <rect x="5" y="8" width="190" height="44" rx="8" fill="url(#logoGradient)" opacity="0.1"/>
+  
+  <!-- Hebrew text "ברשותי" -->
+  <text x="100" y="42" font-family="Assistant, Arial, sans-serif" font-size="32" font-weight="700" fill="url(#logoGradient)" text-anchor="middle" letter-spacing="1">
+    ברשותי
+  </text>
+</svg>

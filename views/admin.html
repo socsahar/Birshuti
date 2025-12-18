@@ -1,0 +1,949 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>פאנל ניהול - ברשותי</title>
+    <link rel="icon" type="image/svg+xml" href="/images/favicon.svg">
+    <link rel="stylesheet" href="/css/main.css">
+    <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        .admin-tabs {
+            display: flex;
+            gap: 1rem;
+            border-bottom: 2px solid var(--neutral-200);
+            margin-bottom: 2rem;
+        }
+        .admin-tab {
+            padding: 1rem 1.5rem;
+            cursor: pointer;
+            border: none;
+            background: none;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--neutral-600);
+            border-bottom: 3px solid transparent;
+            transition: var(--transition);
+        }
+        .admin-tab:hover {
+            color: var(--primary);
+        }
+        .admin-tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+        .admin-section {
+            display: none;
+        }
+        .admin-section.active {
+            display: block;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            text-align: center;
+        }
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+        .stat-label {
+            color: var(--neutral-600);
+            font-size: 0.875rem;
+        }
+        .user-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .user-table th,
+        .user-table td {
+            padding: 1rem;
+            text-align: right;
+            border-bottom: 1px solid var(--neutral-200);
+        }
+        .user-table th {
+            background-color: var(--neutral-100);
+            font-weight: 700;
+            color: var(--neutral-800);
+        }
+        .user-table tr:hover {
+            background-color: var(--neutral-100);
+        }
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: flex-start;
+        }
+        /* Custom Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-overlay.show {
+            display: flex;
+        }
+        .modal-box {
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: var(--shadow-xl);
+            animation: modalSlideIn 0.3s ease;
+        }
+        @keyframes modalSlideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--neutral-800);
+            margin-bottom: 1rem;
+        }
+        .modal-message {
+            color: var(--neutral-600);
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+        .modal-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+        }
+    </style>
+</head>
+<body>
+    <!-- Confirmation Modal -->
+    <div id="confirm-modal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-title" id="modal-title"></div>
+            <div class="modal-message" id="modal-message"></div>
+            <div class="modal-buttons">
+                <button class="btn btn-outline" id="modal-cancel">ביטול</button>
+                <button class="btn btn-primary" id="modal-confirm">אישור</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Listing Details Modal -->
+    <div id="listing-details-modal" class="modal-overlay">
+        <div class="modal-box" style="max-width: 800px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h2 style="color: var(--primary); margin: 0;">פרטי פרסום</h2>
+                <button class="btn btn-outline btn-sm" id="close-listing-modal-btn">סגור</button>
+            </div>
+            <div id="listing-details-content">
+                <div class="spinner"></div>
+            </div>
+        </div>
+    </div>
+    <header class="header">
+        <div class="container">
+            <nav class="nav">
+                <div class="logo"><img src="/images/logo.png" alt="ברשותי" style="height: 100px; vertical-align: middle;"> - פאנל ניהול</div>
+                <ul class="nav-links">
+                    <li><a href="/">עמוד הבית</a></li>
+                    <li><a href="/dashboard">לוח הבקרה</a></li>
+                    <li><a href="/listings">ציוד זמין</a></li>
+                    <li><a href="#" id="logout-btn" class="btn btn-outline btn-sm">התנתק</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <section class="section">
+        <div class="container">
+            <h1 style="color: var(--primary); margin-bottom: 2rem;">פאנל ניהול</h1>
+
+            <!-- Tabs -->
+            <div class="admin-tabs">
+                <button class="admin-tab active" data-tab="stats">סטטיסטיקות</button>
+                <button class="admin-tab" data-tab="pending">ממתינים לאישור</button>
+                <button class="admin-tab" data-tab="users">ניהול משתמשים</button>
+                <button class="admin-tab" data-tab="listings">ניהול פרסומים</button>
+                <button class="admin-tab" data-tab="audit">יומן פעולות</button>
+            </div>
+
+            <!-- Statistics Section -->
+            <div class="admin-section active" id="section-stats">
+                <h2 style="color: var(--secondary); margin-bottom: 1.5rem;">סטטיסטיקות כלליות</h2>
+                <div class="stats-grid" id="stats-container">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+
+            <!-- Pending Volunteers Section -->
+            <div class="admin-section" id="section-pending">
+                <h2 style="color: var(--secondary); margin-bottom: 1.5rem;">מתנדבים ממתינים לאישור</h2>
+                <div id="pending-container">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+
+            <!-- Users Management Section -->
+            <div class="admin-section" id="section-users">
+                <h2 style="color: var(--secondary); margin-bottom: 1.5rem;">ניהול משתמשים</h2>
+                
+                <!-- Filters -->
+                <div class="card" style="margin-bottom: 1.5rem;">
+                    <div style="display: flex; gap: 1rem; align-items: end;">
+                        <div class="form-group" style="flex: 1; margin-bottom: 0;">
+                            <label class="form-label">סינון לפי תפקיד</label>
+                            <select class="form-select" id="users-role-filter">
+                                <option value="">הכל</option>
+                                <option value="user">משתמש רגיל</option>
+                                <option value="pending_volunteer">ממתין לאישור</option>
+                                <option value="verified_volunteer">מתנדב מאומת</option>
+                                <option value="admin">מנהל</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="flex: 2; margin-bottom: 0;">
+                            <label class="form-label">חיפוש</label>
+                            <input type="text" class="form-input" id="users-search" placeholder="חיפוש לפי שם או טלפון">
+                        </div>
+                        <button class="btn btn-primary" id="search-users-btn">חפש</button>
+                    </div>
+                </div>
+
+                <div id="users-container">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+
+            <!-- Listings Management Section -->
+            <div class="admin-section" id="section-listings">
+                <h2 style="color: var(--secondary); margin-bottom: 1.5rem;">ניהול פרסומים</h2>
+                
+                <!-- Filters -->
+                <div class="card" style="margin-bottom: 1.5rem;">
+                    <div style="display: flex; gap: 1rem; align-items: end; flex-wrap: wrap;">
+                        <div class="form-group" style="flex: 1; margin-bottom: 0; min-width: 150px;">
+                            <label class="form-label">סטטוס</label>
+                            <select class="form-select" id="listings-status-filter">
+                                <option value="all">הכל</option>
+                                <option value="available">זמינים</option>
+                                <option value="unavailable">לא זמינים</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="flex: 2; margin-bottom: 0; min-width: 200px;">
+                            <label class="form-label">חיפוש</label>
+                            <input type="text" class="form-input" id="listings-search" placeholder="חיפוש לפי כותרת או תיאור">
+                        </div>
+                    </div>
+                </div>
+
+                <div id="listings-admin-container">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+
+            <!-- Audit Log Section -->
+            <div class="admin-section" id="section-audit">
+                <h2 style="color: var(--secondary); margin-bottom: 1.5rem;">יומן פעולות מנהלים</h2>
+                <div id="audit-container">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 ברשותי - פלטפורמת שיתוף ציוד למתנדבי מד״א</p>
+            <p style="font-size: 0.875rem; margin-top: 0.5rem; color: rgba(255, 255, 255, 0.7);">
+                פותח על ידי <a href="https://sanda-uinc.onrender.com/" target="_blank" rel="noopener noreferrer" style="color: #ffffff; text-decoration: underline;">Sand</a>
+            </p>
+        </div>
+    </footer>
+
+    <script src="/js/app.js"></script>
+    <script>
+        // Require authentication and admin role
+        if (!requireAuth()) {
+            throw new Error('Not authenticated');
+        }
+
+        if (!hasRole(['admin'])) {
+            alert('אין לך הרשאה לגשת לפאנל הניהול');
+            window.location.href = '/dashboard';
+        }
+
+        // Handle logout
+        document.getElementById('logout-btn').addEventListener('click', async function(e) {
+            e.preventDefault();
+            try {
+                await authAPI.logout();
+                window.location.href = '/';
+            } catch (error) {
+                clearAuthSession();
+                window.location.href = '/';
+            }
+        });
+
+        // Handle close listing modal button
+        document.getElementById('close-listing-modal-btn').addEventListener('click', closeListingModal);
+
+        // Tab switching
+        document.querySelectorAll('.admin-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                const tabName = this.dataset.tab;
+                
+                // Update active tab
+                document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                
+                // Update active section
+                document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
+                document.getElementById(`section-${tabName}`).classList.add('active');
+                
+                // Load content if needed
+                if (tabName === 'stats') loadStats();
+                if (tabName === 'listings') loadAllListings();
+                else if (tabName === 'pending') loadPending();
+                else if (tabName === 'users') loadUsers();
+                else if (tabName === 'audit') loadAuditLog();
+            });
+        });
+
+        // Load Statistics
+        async function loadStats() {
+            const container = document.getElementById('stats-container');
+            container.innerHTML = '<div class="spinner"></div>';
+
+            try {
+                const data = await adminAPI.getStats();
+                const stats = data.stats;
+
+                container.innerHTML = `
+                    <div class="stat-card">
+                        <div class="stat-number">${stats.total_users}</div>
+                        <div class="stat-label">סה״כ משתמשים</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" style="color: var(--warning);">${stats.pending_volunteers}</div>
+                        <div class="stat-label">ממתינים לאישור</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" style="color: var(--success);">${stats.verified_volunteers}</div>
+                        <div class="stat-label">מתנדבים מאומתים</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" style="color: var(--secondary);">${stats.admins}</div>
+                        <div class="stat-label">מנהלים</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" style="color: var(--accent);">${stats.active_listings || 0}</div>
+                        <div class="stat-label">פרסומים פעילים</div>
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Load stats error:', error);
+                container.innerHTML = '<div class="alert alert-error">שגיאה בטעינת סטטיסטיקות</div>';
+            }
+        }
+
+        // Load Pending Volunteers
+        async function loadPending() {
+            const container = document.getElementById('pending-container');
+            container.innerHTML = '<div class="spinner"></div>';
+
+            try {
+                const data = await adminAPI.getPendingVolunteers();
+                
+                if (data.pending.length === 0) {
+                    container.innerHTML = '<div class="alert alert-info">אין מתנדבים ממתינים לאישור כרגע</div>';
+                    return;
+                }
+
+                container.innerHTML = `
+                    <div class="card">
+                        <table class="user-table">
+                            <thead>
+                                <tr>
+                                    <th>שם מלא</th>
+                                    <th>אימייל</th>
+                                    <th>מרחב</th>
+                                    <th>טלפון</th>
+                                    <th>תאריך הרשמה</th>
+                                    <th>פעולות</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${data.pending.map(user => `
+                                    <tr>
+                                        <td>${user.full_name}</td>
+                                        <td>${user.email}</td>
+                                        <td>${user.merhav}</td>
+                                        <td>${user.phone || '-'}</td>
+                                        <td>${formatDate(user.created_at)}</td>
+                                        <td>
+                                            <div class="action-buttons">
+                                                <button class="btn btn-sm btn-success approve-volunteer-btn" data-user-id="${user.id}" data-user-name="${user.full_name}">אשר</button>
+                                                <button class="btn btn-sm btn-danger reject-volunteer-btn" data-user-id="${user.id}" data-user-name="${user.full_name}">דחה</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Load pending error:', error);
+                container.innerHTML = '<div class="alert alert-error">שגיאה בטעינת רשימת ממתינים</div>';
+            }
+        }
+
+        // Load Users
+        async function loadUsers() {
+            const container = document.getElementById('users-container');
+            container.innerHTML = '<div class="spinner"></div>';
+
+            try {
+                const filters = {
+                    role: document.getElementById('users-role-filter').value,
+                    search: document.getElementById('users-search').value
+                };
+
+                Object.keys(filters).forEach(key => {
+                    if (!filters[key]) delete filters[key];
+                });
+
+                const data = await adminAPI.getUsers(filters);
+                
+                if (data.users.length === 0) {
+                    container.innerHTML = '<div class="alert alert-info">לא נמצאו משתמשים</div>';
+                    return;
+                }
+
+                const roleMap = {
+                    'user': 'משתמש רגיל',
+                    'pending_volunteer': 'ממתין לאישור',
+                    'verified_volunteer': 'מתנדב מאומת',
+                    'admin': 'מנהל'
+                };
+
+                container.innerHTML = `
+                    <div class="card">
+                        <table class="user-table">
+                            <thead>
+                                <tr>
+                                    <th>שם מלא</th>
+                                    <th>טלפון</th>
+                                    <th>תפקיד</th>
+                                    <th>מרחב</th>
+                                    <th>תאריך הצטרפות</th>
+                                    <th>פעולות</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${data.users.map(user => `
+                                    <tr>
+                                        <td>${user.full_name}</td>
+                                        <td>${user.phone || 'לא צוין'}</td>
+                                        <td><span class="badge badge-${user.role === 'admin' ? 'primary' : user.role === 'verified_volunteer' ? 'success' : 'secondary'}">${roleMap[user.role]}</span></td>
+                                        <td>${user.merhav}</td>
+                                        <td>${formatDate(user.created_at)}</td>
+                                        <td>
+                                            <div class="action-buttons">
+                                                ${user.username === 'admin' ? 
+                                                    `<span class="badge badge-warning">מוגן</span>` 
+                                                    : user.role !== 'admin' ? 
+                                                    `<button class="btn btn-sm btn-primary promote-admin-btn" data-user-id="${user.id}" data-user-name="${user.full_name}">קדם למנהל</button>` 
+                                                    : 
+                                                    `<button class="btn btn-sm btn-warning demote-admin-btn" data-user-id="${user.id}" data-user-name="${user.full_name}">הסר ניהול</button>`
+                                                }
+                                                ${user.username !== 'admin' ? 
+                                                    `<button class="btn btn-sm btn-danger delete-user-btn" data-user-id="${user.id}" data-user-name="${user.full_name}">מחק משתמש</button>` 
+                                                    : ''
+                                                }
+                                            </div>
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Load users error:', error);
+                container.innerHTML = '<div class="alert alert-error">שגיאה בטעינת משתמשים</div>';
+            }
+        }
+
+        // Load All Listings for admin
+        async function loadAllListings() {
+            const container = document.getElementById('listings-admin-container');
+            container.innerHTML = '<div class="spinner"></div>';
+
+            try {
+                const statusFilter = document.getElementById('listings-status-filter').value;
+                const search = document.getElementById('listings-search').value;
+
+                // Fetch all listings using admin API
+                const data = await listingsAPI.getAll({ search });
+                
+                // Filter by status on frontend
+                let filteredListings = data.listings;
+                if (statusFilter === 'available') {
+                    filteredListings = data.listings.filter(l => l.is_available);
+                } else if (statusFilter === 'unavailable') {
+                    filteredListings = data.listings.filter(l => !l.is_available);
+                }
+
+                if (filteredListings.length === 0) {
+                    container.innerHTML = '<div class="alert alert-info">לא נמצאו פרסומים</div>';
+                    return;
+                }
+
+                container.innerHTML = filteredListings.map(listing => {
+                    const owner = listing.owner || {};
+                    return `
+                        <div class="card admin-listing-card" data-listing-id="${listing.id}" style="cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;">
+                            <div style="display: flex; justify-content: space-between; align-items: start; gap: 1rem;">
+                                <div style="flex: 1;">
+                                    <h3 style="color: var(--primary); margin-bottom: 0.5rem;">${listing.title}</h3>
+                                    <div style="margin-bottom: 0.75rem;">
+                                        <span class="badge badge-secondary">${listing.category}</span>
+                                        <span class="badge badge-primary">${listing.transaction_type}</span>
+                                        ${listing.size ? `<span class="badge badge-secondary">${listing.size}</span>` : ''}
+                                        ${listing.volunteer_only ? '<span class="badge badge-warning">למתנדבים בלבד</span>' : ''}
+                                        <span class="badge badge-${listing.is_available ? 'success' : 'error'}">${listing.is_available ? 'זמין' : 'לא זמין'}</span>
+                                    </div>
+                                    ${listing.description ? `<p style="color: var(--neutral-600); margin-bottom: 0.75rem;">${listing.description}</p>` : ''}
+                                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.5rem; margin-bottom: 0.5rem;">
+                                        <p style="margin: 0;"><strong>מרחב:</strong> ${listing.merhav}</p>
+                                        <p style="margin: 0;"><strong>מפרסם:</strong> ${owner.full_name || 'לא ידוע'}</p>
+                                    </div>
+                                    <p style="font-size: 0.875rem; color: var(--neutral-600); margin: 0;">
+                                        פורסם: ${formatDate(listing.created_at)}
+                                    </p>
+                                    <p style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--secondary); font-style: italic;">
+                                        👆 לחץ לצפייה בפרטים המלאים
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                // Add event delegation for listing clicks
+                document.querySelectorAll('.admin-listing-card').forEach(card => {
+                    card.addEventListener('click', function() {
+                        showListingDetails(this.dataset.listingId);
+                    });
+                });
+
+            } catch (error) {
+                console.error('Load listings error:', error);
+                container.innerHTML = '<div class="alert alert-error">שגיאה בטעינת פרסומים</div>';
+            }
+        }
+
+        // Load Audit Log
+        async function loadAuditLog() {
+            const container = document.getElementById('audit-container');
+            container.innerHTML = '<div class="spinner"></div>';
+
+            try {
+                const data = await adminAPI.getAuditLog(100);
+                
+                if (data.log.length === 0) {
+                    container.innerHTML = '<div class="alert alert-info">אין פעולות ביומן</div>';
+                    return;
+                }
+
+                const actionMap = {
+                    'approve_volunteer': 'אישור מתנדב',
+                    'reject_volunteer': 'דחיית בקשת מתנדב',
+                    'promote_admin': 'קידום למנהל',
+                    'demote_admin': 'הורדה מניהול'
+                };
+
+                container.innerHTML = data.log.map(entry => `
+                    <div class="card">
+                        <div style="display: flex; justify-content: space-between; align-items: start;">
+                            <div style="flex: 1;">
+                                <strong>${actionMap[entry.action] || entry.action}</strong><br>
+                                <span class="text-muted">מנהל: ${entry.admin?.full_name || 'לא ידוע'}</span><br>
+                                <span class="text-muted">משתמש: ${entry.target_user?.full_name || 'לא ידוע'}</span>
+                            </div>
+                            <div style="text-align: left; color: var(--neutral-600); font-size: 0.875rem;">
+                                ${formatDate(entry.created_at)}
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+
+            } catch (error) {
+                console.error('Load audit log error:', error);
+                container.innerHTML = '<div class="alert alert-error">שגיאה בטעינת יומן פעולות</div>';
+            }
+        }
+
+        // Show listing details in modal
+        async function showListingDetails(listingId) {
+            const modal = document.getElementById('listing-details-modal');
+            const content = document.getElementById('listing-details-content');
+            
+            modal.classList.add('show');
+            content.innerHTML = '<div class="spinner"></div>';
+
+            try {
+                const response = await fetch(`/api/listings/${listingId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${getAuthToken()}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to load listing');
+                }
+
+                const data = await response.json();
+                const listing = data.listing;
+                const owner = listing.owner || {};
+                
+                const whatsappMessage = encodeURIComponent(`היי, בנוגע ל${listing.title} שפרסמת`);
+                const whatsappLink = owner.phone ? `https://wa.me/972${owner.phone.replace(/^0/, '')}?text=${whatsappMessage}` : '';
+
+                content.innerHTML = `
+                    <div>
+                        <h3 style="color: var(--primary); margin-bottom: 1rem;">${listing.title}</h3>
+                        
+                        ${(listing.image1 || listing.image2) ? `
+                            <div style="margin-bottom: 1.5rem; display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                                ${listing.image1 ? `<img src="${listing.image1}" alt="${listing.title}" style="max-width: 250px; width: 100%; height: auto; object-fit: cover; border-radius: 8px;" />` : ''}
+                                ${listing.image2 ? `<img src="${listing.image2}" alt="${listing.title}" style="max-width: 250px; width: 100%; height: auto; object-fit: cover; border-radius: 8px;" />` : ''}
+                            </div>
+                        ` : ''}
+                        
+                        <div style="margin-bottom: 1.5rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                            <span class="badge badge-secondary">${listing.category}</span>
+                            <span class="badge badge-primary">${listing.transaction_type}</span>
+                            ${listing.size ? `<span class="badge badge-secondary">${listing.size}</span>` : ''}
+                            ${listing.volunteer_only ? '<span class="badge badge-warning">למתנדבים בלבד</span>' : ''}
+                            <span class="badge badge-${listing.is_available ? 'success' : 'error'}">${listing.is_available ? 'זמין' : 'לא זמין'}</span>
+                        </div>
+
+                        ${listing.description ? `
+                            <div style="margin-bottom: 1.5rem;">
+                                <h4 style="color: var(--secondary); margin-bottom: 0.5rem;">תיאור</h4>
+                                <p style="color: var(--neutral-700);">${listing.description}</p>
+                            </div>
+                        ` : ''}
+
+                        <div style="margin-bottom: 1.5rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                            <div>
+                                <strong>מרחב:</strong> ${listing.merhav}
+                            </div>
+                            <div>
+                                <strong>מפרסם:</strong> ${owner.full_name || 'לא ידוע'}
+                            </div>
+                            ${owner.phone ? `
+                                <div>
+                                    <strong>טלפון:</strong> ${owner.phone}
+                                </div>
+                            ` : ''}
+                            <div>
+                                <strong>פורסם:</strong> ${formatDate(listing.created_at)}
+                            </div>
+                            <div>
+                                <strong>צפיות:</strong> ${listing.views || 0}
+                            </div>
+                        </div>
+
+                        <div style="display: flex; gap: 1rem; justify-content: flex-end; padding-top: 1rem; border-top: 1px solid var(--neutral-200);">
+                            ${whatsappLink ? `
+                                <a href="${whatsappLink}" target="_blank" rel="noopener noreferrer" class="btn btn-success">
+                                    שלח הודעה בווטסאפ
+                                </a>
+                            ` : ''}
+                            <button class="btn btn-secondary" id="edit-listing-btn" data-listing-id="${listing.id}">
+                                ערוך פרסום
+                            </button>
+                            <button class="btn btn-danger" id="delete-listing-btn" data-listing-id="${listing.id}">
+                                מחק פרסום
+                            </button>
+                        </div>
+                    </div>
+                `;
+
+                // Add event listeners for modal buttons
+                document.getElementById('edit-listing-btn')?.addEventListener('click', function() {
+                    window.location.href = `/create-listing?id=${this.dataset.listingId}`;
+                });
+                
+                document.getElementById('delete-listing-btn')?.addEventListener('click', function() {
+                    deleteListingFromModal(this.dataset.listingId);
+                });
+
+            } catch (error) {
+                console.error('Load listing error:', error);
+                content.innerHTML = '<div class="alert alert-error">שגיאה בטעינת הפרסום</div>';
+            }
+        }
+
+        function closeListingModal() {
+            document.getElementById('listing-details-modal').classList.remove('show');
+        }
+
+        async function deleteListingFromModal(listingId) {
+            const confirmed = await showConfirm(
+                'מחיקת פרסום',
+                'האם אתה בטוח שברצונך למחוק פרסום זה?'
+            );
+
+            if (confirmed) {
+                try {
+                    await listingsAPI.delete(listingId);
+                    closeListingModal();
+                    loadAllListings();
+                } catch (error) {
+                    alert('שגיאה במחיקת הפרסום');
+                }
+            }
+        }
+
+        // Custom confirm modal
+        function showConfirm(title, message) {
+            return new Promise((resolve) => {
+                const modal = document.getElementById('confirm-modal');
+                const titleEl = document.getElementById('modal-title');
+                const messageEl = document.getElementById('modal-message');
+                const confirmBtn = document.getElementById('modal-confirm');
+                const cancelBtn = document.getElementById('modal-cancel');
+
+                titleEl.textContent = title;
+                messageEl.textContent = message;
+                modal.classList.add('show');
+
+                const cleanup = () => {
+                    modal.classList.remove('show');
+                    confirmBtn.removeEventListener('click', onConfirm);
+                    cancelBtn.removeEventListener('click', onCancel);
+                    modal.removeEventListener('click', onOverlayClick);
+                };
+
+                const onConfirm = () => {
+                    cleanup();
+                    resolve(true);
+                };
+
+                const onCancel = () => {
+                    cleanup();
+                    resolve(false);
+                };
+
+                const onOverlayClick = (e) => {
+                    if (e.target === modal) {
+                        cleanup();
+                        resolve(false);
+                    }
+                };
+
+                confirmBtn.addEventListener('click', onConfirm);
+                cancelBtn.addEventListener('click', onCancel);
+                modal.addEventListener('click', onOverlayClick);
+            });
+        }
+
+        // Approve volunteer
+        async function approveVolunteer(userId, name) {
+            const confirmed = await showConfirm(
+                'אישור מתנדב',
+                `האם אתה בטוח שברצונך לאשר את ${name} כמתנדב מאומת?`
+            );
+            
+            if (!confirmed) return;
+
+            try {
+                await adminAPI.approveVolunteer(userId);
+                showSuccess(`${name} אושר בהצלחה כמתנדב`);
+                loadPending();
+                loadStats();
+            } catch (error) {
+                console.error('Approve error:', error);
+                showError(error.message || 'שגיאה באישור המתנדב');
+            }
+        }
+
+        // Reject volunteer
+        async function rejectVolunteer(userId, name) {
+            const confirmed = await showConfirm(
+                'דחיית בקשה',
+                `האם אתה בטוח שברצונך לדחות את בקשת ${name}?`
+            );
+            
+            if (!confirmed) return;
+
+            try {
+                await adminAPI.rejectVolunteer(userId);
+                showSuccess(`בקשת ${name} נדחתה`);
+                loadPending();
+                loadStats();
+            } catch (error) {
+                console.error('Reject error:', error);
+                showError(error.message || 'שגיאה בדחיית הבקשה');
+            }
+        }
+
+        // Promote to admin
+        async function promoteToAdmin(userId, name) {
+            const confirmed = await showConfirm(
+                'קידום למנהל',
+                `האם אתה בטוח שברצונך לקדם את ${name} למנהל?\n\nמנהלים יכולים לאשר מתנדבים, לקדם משתמשים אחרים ולנהל את הפלטפורמה.`
+            );
+            
+            if (!confirmed) return;
+
+            try {
+                await adminAPI.promoteAdmin(userId);
+                showSuccess(`${name} קודם למנהל בהצלחה`);
+                loadUsers();
+                loadStats();
+            } catch (error) {
+                console.error('Promote error:', error);
+                showError(error.message || 'שגיאה בקידום למנהל');
+            }
+        }
+
+        // Demote admin
+        async function demoteAdmin(userId, name) {
+            const confirmed = await showConfirm(
+                'הסרת הרשאות ניהול',
+                `האם אתה בטוח שברצונך להסיר את הרשאות הניהול מ-${name}?`
+            );
+            
+            if (!confirmed) return;
+
+            try {
+                await adminAPI.demoteAdmin(userId);
+                showSuccess(`הרשאות הניהול של ${name} הוסרו`);
+                loadUsers();
+                loadStats();
+            } catch (error) {
+                console.error('Demote error:', error);
+                showError(error.message || 'שגיאה בהורדת הרשאות');
+            }
+        }
+
+        // Delete user
+        async function deleteUser(userId, name) {
+            const confirmed = await showConfirm(
+                'מחיקת משתמש',
+                `האם אתה בטוח שברצונך למחוק את המשתמש ${name}? פעולה זו בלתי הפיכה ותמחק את כל הפרסומים והנתונים של המשתמש.`
+            );
+            
+            if (!confirmed) return;
+
+            try {
+                await adminAPI.deleteUser(userId);
+                showSuccess(`המשתמש ${name} נמחק בהצלחה`);
+                loadUsers();
+                loadStats();
+            } catch (error) {
+                console.error('Delete user error:', error);
+                showError(error.message || 'שגיאה במחיקת משתמש');
+            }
+        }
+
+        // Search users button
+        document.getElementById('search-users-btn').addEventListener('click', loadUsers);
+
+        // Live search - search as user types
+        let searchTimeout;
+        document.getElementById('users-search').addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                loadUsers();
+            }, 300); // Wait 300ms after user stops typing
+        });
+
+        // Also allow enter key to search immediately
+        document.getElementById('users-search').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                clearTimeout(searchTimeout);
+                loadUsers();
+            }
+        });
+
+        // Live filter by role
+        document.getElementById('users-role-filter').addEventListener('change', loadUsers);
+
+        // Listings filters - live search
+        let listingsSearchTimeout;
+        document.getElementById('listings-search').addEventListener('input', function() {
+            clearTimeout(listingsSearchTimeout);
+            listingsSearchTimeout = setTimeout(() => {
+                loadAllListings();
+            }, 300);
+        });
+
+        // Live filter by status
+        document.getElementById('listings-status-filter').addEventListener('change', loadAllListings);
+
+        // Event delegation for dynamically created buttons
+        document.addEventListener('click', function(e) {
+            // Approve volunteer button
+            if (e.target.classList.contains('approve-volunteer-btn')) {
+                const userId = e.target.dataset.userId;
+                const userName = e.target.dataset.userName;
+                approveVolunteer(userId, userName);
+            }
+            // Reject volunteer button
+            else if (e.target.classList.contains('reject-volunteer-btn')) {
+                const userId = e.target.dataset.userId;
+                const userName = e.target.dataset.userName;
+                rejectVolunteer(userId, userName);
+            }
+            // Promote to admin button
+            else if (e.target.classList.contains('promote-admin-btn')) {
+                const userId = e.target.dataset.userId;
+                const userName = e.target.dataset.userName;
+                promoteToAdmin(userId, userName);
+            }
+            // Demote admin button
+            else if (e.target.classList.contains('demote-admin-btn')) {
+                const userId = e.target.dataset.userId;
+                const userName = e.target.dataset.userName;
+                demoteAdmin(userId, userName);
+            }
+            // Delete user button
+            else if (e.target.classList.contains('delete-user-btn')) {
+                const userId = e.target.dataset.userId;
+                const userName = e.target.dataset.userName;
+                deleteUser(userId, userName);
+            }
+        });
+
+        // Initial load
+        loadStats();
+    </script>
+</body>
+</html>

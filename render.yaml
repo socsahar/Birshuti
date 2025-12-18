@@ -1,0 +1,32 @@
+# ==========================================
+# Render Deployment Configuration
+# ==========================================
+# This file configures automatic deployment on Render
+# https://render.com
+
+services:
+  # Web Service
+  - type: web
+    name: birshuti
+    env: node
+    region: frankfurt # or your preferred region
+    plan: free # Change to paid plan for production
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: SUPABASE_URL
+        sync: false # Set manually in Render dashboard
+      - key: SUPABASE_ANON_KEY
+        sync: false
+      - key: SUPABASE_SERVICE_KEY
+        sync: false
+      - key: SESSION_SECRET
+        generateValue: true # Auto-generate secure random string
+      - key: BASE_URL
+        fromService:
+          type: web
+          name: birshuti
+          property: host

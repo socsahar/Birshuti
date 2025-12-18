@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>התחברות - ברשותי</title>
+    <link rel="icon" type="image/svg+xml" href="/images/favicon.svg">
+    <link rel="stylesheet" href="/css/main.css">
+    <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <nav class="nav">
+                <div class="logo"><img src="/images/logo.png" alt="ברשותי" style="height: 100px; vertical-align: middle;"></div>
+                <ul class="nav-links">
+                    <li><a href="/">עמוד הבית</a></li>
+                    <li><a href="/register">הרשמה</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <section class="section">
+        <div class="container-narrow">
+            <h1 style="text-align: center; color: var(--primary); margin-bottom: 2rem;">התחברות</h1>
+
+            <div class="card">
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label class="form-label">
+                            שם משתמש
+                        </label>
+                        <input 
+                            type="text" 
+                            class="form-input" 
+                            id="username" 
+                            name="username" 
+                            required
+                            autofocus
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">
+                            סיסמה
+                        </label>
+                        <input 
+                            type="password" 
+                            class="form-input" 
+                            id="password" 
+                            name="password" 
+                            required
+                        >
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-block btn-lg">
+                        התחבר
+                    </button>
+
+                    <p style="text-align: center; margin-top: 1.5rem; color: var(--neutral-600);">
+                        עדיין אין לך חשבון? <a href="/register">הירשם כאן</a>
+                    </p>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 ברשותי - פלטפורמת שיתוף ציוד למתנדבי מד״א</p>
+            <p style="font-size: 0.875rem; margin-top: 0.5rem; color: rgba(255, 255, 255, 0.7);">
+                פותח על ידי <a href="https://sanda-uinc.onrender.com/" target="_blank" rel="noopener noreferrer" style="color: #ffffff; text-decoration: underline;">Sand</a>
+            </p>
+        </div>
+    </footer>
+
+    <script src="/js/app.js"></script>
+    <script>
+        // Redirect if already logged in
+        redirectIfAuthenticated();
+
+        // Handle login form
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+
+            if (!username || !password) {
+                showError('אנא מלא את כל השדות');
+                return;
+            }
+
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            showLoading(submitBtn);
+
+            try {
+                const data = await authAPI.login(username, password);
+                showSuccess('התחברת בהצלחה!');
+                
+                setTimeout(() => {
+                    // Redirect to home page after login
+                    window.location.href = '/';
+                }, 1000);
+
+            } catch (error) {
+                console.error('Login error:', error);
+                showError(error.message || 'שגיאה בהתחברות. בדוק את פרטי ההתחברות.');
+                hideLoading(submitBtn);
+            }
+        });
+    </script>
+</body>
+</html>

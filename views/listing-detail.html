@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>פרטי פרסום - ברשותי</title>
+    <link rel="icon" type="image/svg+xml" href="/images/favicon.svg">
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <nav class="nav">
+                <div class="logo">
+                    <img src="/images/logo.png" alt="ברשותי" style="height: 100px; vertical-align: middle;">
+                </div>
+                <ul class="nav-links" id="nav-links">
+                    <!-- Will be populated by JavaScript -->
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container" style="margin-top: 2rem;">
+        <div id="listing-container">
+            <!-- Loading spinner -->
+            <div style="text-align: center; padding: 3rem;">
+                <div class="spinner"></div>
+                <p>טוען פרטי פרסום...</p>
+            </div>
+        </div>
+    </main>
+
+    <script src="/js/app.js"></script>
+    <script>
+        // Setup navigation
+        const isAuth = isAuthenticated();
+        const navLinks = document.getElementById('nav-links');
+        
+        if (isAuth) {
+            const user = getCurrentUser();
+            navLinks.innerHTML = `
+                <li><a href="/">עמוד הבית</a></li>
+                <li><a href="/dashboard">לוח הבקרה</a></li>
+                <li><a href="/listings">ציוד זמין</a></li>
+                ${user.role === 'admin' ? '<li><a href="/admin">פאנל ניהול</a></li>' : ''}
+                <li><a href="#" id="logout-btn" class="btn btn-outline btn-sm">התנתק</a></li>
+            `;
+            
+            document.getElementById('logout-btn').addEventListener('click', async function(e) {
+                e.preventDefault();
+                try {
+                    await authAPI.logout();
+                    window.location.href = '/';
+                } catch (error) {
+                    clearAuthSession();
+                    window.location.href = '/';
+                }
+            });
+        } else {
+            navLinks.innerHTML = `
+                <li><a href="/">עמוד הבית</a></li>
+                <li><a href="/login" class="btn btn-outline btn-sm">התחברות</a></li>
+                <li><a href="/register" class="btn btn-primary btn-sm">הרשמה</a></li>
+            `;
+        }
+
+        // Get listing ID from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const listingId = urlParams.get('id') || window.location.pathname.split('/listing/')[1];
+
+        if (!listingId) {
+            window.location.href = '/listings';
+        }
+
+        // Load listing details
+        async function loadListing() {
+            try {
+                const container = document.getElementById('listing-container');
+                
+                const response = await fetch(`/api/listings/${listingId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${getAuthToken()}`
+                    }
+                });
+
+                // Increment view count (don't wait for response, fire and forget)
+                fetch(`/api/listings/${listingId}/increment-view`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                }).catch(err => console.log('View count increment failed:', err));
+
+                if (!response.ok) {
+                    if (response.status === 404) {
+                        container.innerHTML = `
+                            <div class="alert alert-error">
+                                <h3>הפרסום לא נמצא</h3>
+                                <p>הפרסום שחיפשת אינו קיים או הוסר.</p>
+                                <a href="/listings" class="btn btn-primary" style="margin-top: 1rem;">חזור לרשימת הפרסומים</a>
+                            </div>
+                        `;
+                    } else if (response.status === 403) {
+                        container.innerHTML = `
+                            <div class="alert alert-warning">
+                                <h3>אין הרשאה</h3>
+                                <p>פרסום זה זמין למתנדבים מאומתים בלבד.</p>
+                                <a href="/listings" class="btn btn-primary" style="margin-top: 1rem;">חזור לרשימת הפרסומים</a>
+                            </div>
+                        `;
+                    } else {
+                        throw new Error('Failed to load listing');
+                    }
+                    return;
+                }
+
+                const data = await response.json();
+                const listing = data.listing;
+                const owner = listing.owner || {};
+                
+                const whatsappMessage = encodeURIComponent(`היי, בנוגע ל${listing.title} שפרסמת`);
+                const whatsappLink = owner.phone ? `https://wa.me/972${owner.phone.replace(/^0/, '')}?text=${whatsappMessage}` : '';
+
+                // Get navigation info from sessionStorage
+                const listingIdsStr = sessionStorage.getItem('listingIds');
+                const listingIds = listingIdsStr ? JSON.parse(listingIdsStr) : [];
+                const currentIndex = listingIds.indexOf(listingId);
+                const hasPrev = currentIndex > 0;
+                const hasNext = currentIndex >= 0 && currentIndex < listingIds.length - 1;
+                const prevId = hasPrev ? listingIds[currentIndex - 1] : null;
+                const nextId = hasNext ? listingIds[currentIndex + 1] : null;
+
+                container.innerHTML = `
+                    <div style="margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+                        <a href="/listings" class="btn btn-outline btn-sm">← חזור לרשימה</a>
+                        <div style="display: flex; gap: 0.5rem;">
+                            ${hasPrev ? `<a href="/listing-detail?id=${prevId}" class="btn btn-secondary btn-sm">→ פרסום קודם</a>` : '<span class="btn btn-sm" style="opacity: 0.5; pointer-events: none;">→ פרסום קודם</span>'}
+                            ${hasNext ? `<a href="/listing-detail?id=${nextId}" class="btn btn-secondary btn-sm">פרסום הבא ←</a>` : '<span class="btn btn-sm" style="opacity: 0.5; pointer-events: none;">פרסום הבא ←</span>'}
+                        </div>
+                    </div>
+                    
+                    <div class="card" style="max-width: 800px; margin: 0 auto;">
+                        <h1 style="color: var(--primary); margin-bottom: 1rem;">${listing.title}</h1>
+                        
+                        ${(listing.image1 || listing.image2) ? `
+                            <div style="margin-bottom: 1.5rem; display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                                ${listing.image1 ? `<img src="${listing.image1}" alt="${listing.title}" class="listing-detail-image" data-image-src="${listing.image1}" style="max-width: 350px; width: 100%; height: auto; object-fit: cover; border-radius: 8px; cursor: pointer;" />` : ''}
+                                ${listing.image2 ? `<img src="${listing.image2}" alt="${listing.title}" class="listing-detail-image" data-image-src="${listing.image2}" style="max-width: 350px; width: 100%; height: auto; object-fit: cover; border-radius: 8px; cursor: pointer;" />` : ''}
+                            </div>
+                        ` : ''}
+                        
+                        <div style="margin-bottom: 1.5rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                            <span class="badge badge-secondary">${listing.category}</span>
+                            <span class="badge badge-primary">${listing.transaction_type}</span>
+                            ${listing.size ? `<span class="badge badge-secondary">${listing.size}</span>` : ''}
+                            ${listing.volunteer_only ? '<span class="badge badge-warning">למתנדבים בלבד</span>' : ''}
+                        </div>
+
+                        ${listing.description ? `
+                            <div style="margin-bottom: 1.5rem;">
+                                <h3 style="color: var(--secondary); font-size: 1.1rem; margin-bottom: 0.5rem;">תיאור</h3>
+                                <p style="color: var(--neutral-600); white-space: pre-wrap;">${listing.description}</p>
+                            </div>
+                        ` : ''}
+
+                        <div style="margin-bottom: 1.5rem;">
+                            <h3 style="color: var(--secondary); font-size: 1.1rem; margin-bottom: 0.5rem;">פרטים</h3>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                                <div>
+                                    <strong>מרחב:</strong> ${listing.merhav}
+                                </div>
+                                <div>
+                                    <strong>מפרסם:</strong> ${owner.full_name || 'לא ידוע'}
+                                </div>
+                                ${owner.phone ? `
+                                    <div>
+                                        <strong>טלפון:</strong> ${owner.phone}
+                                    </div>
+                                ` : ''}
+                            </div>
+                        </div>
+
+                        <div style="margin-bottom: 1rem;">
+                            <p style="font-size: 0.875rem; color: var(--neutral-600);">
+                                פורסם: ${formatDate(listing.created_at)}
+                            </p>
+                        </div>
+
+                        ${whatsappLink ? `
+                            <div style="border-top: 1px solid var(--neutral-300); padding-top: 1.5rem; margin-top: 1.5rem;">
+                                <h3 style="color: var(--secondary); font-size: 1.1rem; margin-bottom: 1rem;">יצירת קשר</h3>
+                                <a href="${whatsappLink}" target="_blank" rel="noopener noreferrer" 
+                                   class="btn btn-success" 
+                                   style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.5rem; text-decoration: none;">
+                                    <svg style="width: 24px; height: 24px; fill: currentColor;" viewBox="0 0 24 24">
+                                        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
+                                    </svg>
+                                    שלח הודעה בוואטסאפ
+                                </a>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+
+            } catch (error) {
+                console.error('Load listing error:', error);
+                document.getElementById('listing-container').innerHTML = `
+                    <div class="alert alert-error">
+                        <h3>שגיאה בטעינת הפרסום</h3>
+                        <p>אירעה שגיאה בטעינת פרטי הפרסום. אנא נסה שוב מאוחר יותר.</p>
+                        <a href="/listings" class="btn btn-primary" style="margin-top: 1rem;">חזור לרשימת הפרסומים</a>
+                    </div>
+                `;
+            }
+        }
+
+        // Format date helper
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('he-IL', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+        
+        // Image enlargement functions
+        function enlargeImage(src) {
+            document.getElementById('imageModal').style.display = 'block';
+            document.getElementById('enlargedImage').src = src;
+        }
+        
+        // Event delegation for image clicks
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('listing-detail-image')) {
+                enlargeImage(e.target.dataset.imageSrc);
+            }
+        });
+        
+        function closeImageModal() {
+            document.getElementById('imageModal').style.display = 'none';
+        }
+        
+        // Close on click outside
+        window.addEventListener('click', function(e) {
+            const modal = document.getElementById('imageModal');
+            if (e.target === modal) {
+                closeImageModal();
+            }
+        });
+        
+        // Close button event listener (wait for DOM)
+        window.addEventListener('DOMContentLoaded', function() {
+            const closeBtn = document.getElementById('closeModalBtn');
+            if (closeBtn) {
+                closeBtn.addEventListener('click', closeImageModal);
+            }
+        });
+
+        // Load listing on page load
+        loadListing();
+    </script>
+    
+    <!-- Image Enlargement Modal -->
+    <div id="imageModal" style="display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.9);">
+        <span id="closeModalBtn" style="position: absolute; top: 15px; right: 35px; color: #f1f1f1; font-size: 40px; font-weight: bold; cursor: pointer;">&times;</span>
+        <img id="enlargedImage" style="margin: auto; display: block; max-width: 90%; max-height: 90%; margin-top: 2%;">
+    </div>
+</body>
+</html>
