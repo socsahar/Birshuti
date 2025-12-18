@@ -12,6 +12,14 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // ==========================================
+// Trust Proxy (for Render, Heroku, etc.)
+// ==========================================
+// Enable trust proxy when behind a reverse proxy like Render
+if (process.env.NODE_ENV === 'production') {
+    app.set('trust proxy', 1);
+}
+
+// ==========================================
 // Security Middleware
 // ==========================================
 app.use(helmet({
